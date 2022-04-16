@@ -22,11 +22,10 @@ export async function createCard(req: Request, res: Response) {
 
         const cardData = cardService.createCardData(cardType, employeId, employeExist.fullName) as unknown as CardInsertData;
 
-        // console.log(cardData)
         await cardService.createNewCard(cardData);
     } catch (error) {
         
     }
 
-    res.sendStatus(200);
+    res.sendStatus(201);
 };
