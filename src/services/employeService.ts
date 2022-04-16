@@ -1,7 +1,7 @@
-import * as employeRepository from '../repositories/employeRepository.js'
+import * as employeeRepository from '../repositories/employeeRepository.js'
 
-export async function verifyEmploye(employeId: number) {
-    const employeExist = await employeRepository.findById(employeId);
+export async function verifyEmploye(employeeId: number) {
+    const employeExist = await employeeRepository.findById(employeeId);
 
     return employeExist;
 }
