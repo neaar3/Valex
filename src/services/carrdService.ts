@@ -4,6 +4,18 @@ import dayjs from 'dayjs';
 
 import * as cardRepository from '../repositories/cardRepository.js';
 
+export async function findByCardDetails(cardNumber: string, cardHolderName: string, expirationDate: string) {
+    const card = await cardRepository.findByCardDetails(cardNumber, cardHolderName, expirationDate);
+
+    return card;
+}
+
+export async function findById(id: number) {
+    const card = await cardRepository.findById(id);
+
+    return card;
+}
+
 export async function findByTypeAndEmployeeId(cardType: cardRepository.TransactionTypes, employeId: number) {
     const employeeHasCard = await cardRepository.findByTypeAndEmployeeId(cardType, employeId);
 
@@ -11,7 +23,11 @@ export async function findByTypeAndEmployeeId(cardType: cardRepository.Transacti
 }
 
 export async function createNewCard(cardData: cardRepository.CardInsertData) {
-    await cardRepository.insert(cardData)
+    const securityCodeHash = bcrypt.hashSync(cardData.securityCode, 10);
+    cardData.securityCode = securityCodeHash;
+    const cardId = await cardRepository.insert(cardData);
+
+    return cardId;
 }
 
 export function createCardData(cardType: cardRepository.TransactionTypes, employeId: number, employeFullName: string) {
@@ -33,7 +49,6 @@ export function createCardData(cardType: cardRepository.TransactionTypes, employ
     }
 
     const securityCode = faker.finance.creditCardCVV(); 
-    const securityCodeHash = bcrypt.hashSync(securityCode, 10);
 
     const expirationDate = dayjs().add(5, 'year').format("MM/YY");
 
@@ -41,7 +56,7 @@ export function createCardData(cardType: cardRepository.TransactionTypes, employ
         employeeId: employeId,
         number: number,
         cardholderName: cardHolderName,
-        securityCode: securityCodeHash,
+        securityCode: securityCode,
         expirationDate: expirationDate,
         isVirtual: false,
         isBlocked: false,
