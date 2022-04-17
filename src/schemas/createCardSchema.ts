@@ -1,7 +1,7 @@
 import joi from 'joi';
 
 const createCardSchema = joi.object({
-    employeId: joi.number().required(),
+    employeeId: joi.number().required(),
     cardType: joi.string().pattern(new RegExp('(^groceries$)|(^restaurants$)|(^transport$)|(^education$)|(^health$)')).required()
 })
 

@@ -2,26 +2,22 @@ import { Request, Response } from "express";
 import * as employeService from '../services/employeService.js';
 import * as cardService from '../services/carrdService.js';
 import { CardInsertData } from "../repositories/cardRepository.js";
-import dayjs from "dayjs";
-import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
 export async function createCard(req: Request, res: Response) {
-    const { employeId, cardType } = req.body;
+    const { employeeId, cardType } = req.body;
 
     try {
-        const employeExist = await employeService.verifyEmploye(employeId);
-
-        if (!employeExist) {
+        const employeeExist = await employeService.verifyEmploye(employeeId);
+        if (!employeeExist) {
             return res.sendStatus(404)
         }
 
-        const employeHasCard = await cardService.findByTypeAndEmployeeId(cardType, employeId);
-
+        const employeHasCard = await cardService.findByTypeAndEmployeeId(cardType, employeeId);
         if (employeHasCard !== undefined) {
             return res.sendStatus(409)
         }
 
-        const cardData = cardService.createCardData(cardType, employeId, employeExist.fullName) as unknown as CardInsertData;
+        const cardData = cardService.createCardData(cardType, employeeId, employeeExist.fullName) as unknown as CardInsertData;
         
         const securityCode = cardData.securityCode;
 
@@ -49,18 +45,27 @@ export async function activateCard(req: Request, res: Response) {
     
     try {
         const cardResult = await cardService.findById(cardId);
-        
         if (!cardResult) {
             res.sendStatus(404)
         }
-        
-        const diff = cardService.verifyExpirationDate(cardResult);
-        
-        if (diff < 0) {
+        if (cardResult.password) {
             res.sendStatus(403)
         }
         
+        const diff = cardService.verifyExpirationDate(cardResult);
+        if (diff < 0) {
+            res.sendStatus(403)
+        }
+
+        const securityCodeIsValid = cardService.verifySecurityCode(cardResult, securityCode);
+        if (!securityCodeIsValid) {
+            res.sendStatus(401)
+        }
+
+        await cardService.updateCard(cardId, password);
+
+        res.sendStatus(200);
     } catch (error) {
-        
+        console.log(error)
     }
 }

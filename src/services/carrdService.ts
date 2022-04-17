@@ -17,8 +17,8 @@ export async function findById(id: number) {
     return card;
 }
 
-export async function findByTypeAndEmployeeId(cardType: cardRepository.TransactionTypes, employeId: number) {
-    const employeeHasCard = await cardRepository.findByTypeAndEmployeeId(cardType, employeId);
+export async function findByTypeAndEmployeeId(cardType: cardRepository.TransactionTypes, employeeId: number) {
+    const employeeHasCard = await cardRepository.findByTypeAndEmployeeId(cardType, employeeId);
 
     return employeeHasCard;
 }
@@ -75,4 +75,21 @@ export function verifyExpirationDate(cardResult: cardRepository.Card) {
     const diff = expirationDate.diff(now, 'month');
 
     return diff;
+}
+
+export function verifySecurityCode(cardResult: cardRepository.Card, securityCode: string) {
+    const securityCodeIsValid = bcrypt.compareSync(securityCode, cardResult.securityCode);
+
+    return securityCodeIsValid;
+}
+
+export async function updateCard(cardId: number, password: string) {
+    const passwordHash = bcrypt.hashSync(password, 10);
+
+    const updatedCardData = {
+        id: cardId,
+        password: passwordHash
+    } as cardRepository.CardUpdateData;
+
+    await cardRepository.update(cardId, updatedCardData);
 }
