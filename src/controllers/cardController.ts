@@ -2,6 +2,8 @@ import { Request, Response } from "express";
 import * as employeService from '../services/employeService.js';
 import * as cardService from '../services/carrdService.js';
 import { CardInsertData } from "../repositories/cardRepository.js";
+import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
 export async function createCard(req: Request, res: Response) {
     const { employeId, cardType } = req.body;
@@ -21,7 +23,7 @@ export async function createCard(req: Request, res: Response) {
 
         const cardData = cardService.createCardData(cardType, employeId, employeExist.fullName) as unknown as CardInsertData;
         
-        const cvc = cardData.securityCode;
+        const securityCode = cardData.securityCode;
 
         const { id: cardId } = await cardService.createNewCard(cardData);
         
@@ -31,7 +33,7 @@ export async function createCard(req: Request, res: Response) {
             id: cardResult.id,
             number: cardResult.number,
             cardHolderName: cardResult.cardholderName,
-            securityCode: cvc,
+            securityCode: securityCode,
             expirationDate: cardResult.expirationDate,
             type: cardResult.type
         }
@@ -41,3 +43,24 @@ export async function createCard(req: Request, res: Response) {
         console.log(error)
     }
 };
+
+export async function activateCard(req: Request, res: Response) {
+    const { cardId, securityCode, password} = req.body;
+    
+    try {
+        const cardResult = await cardService.findById(cardId);
+        
+        if (!cardResult) {
+            res.sendStatus(404)
+        }
+        
+        const diff = cardService.verifyExpirationDate(cardResult);
+        
+        if (diff < 0) {
+            res.sendStatus(403)
+        }
+        
+    } catch (error) {
+        
+    }
+}

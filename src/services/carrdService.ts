@@ -1,6 +1,7 @@
 import { faker } from '@faker-js/faker';
 import bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
 import * as cardRepository from '../repositories/cardRepository.js';
 
@@ -64,4 +65,14 @@ export function createCardData(cardType: cardRepository.TransactionTypes, employ
     };
 
     return randomCardData
+}
+
+export function verifyExpirationDate(cardResult: cardRepository.Card) {
+    dayjs.extend(customParseFormat);
+    
+    const now = dayjs();
+    const expirationDate = dayjs(cardResult.expirationDate, 'MM/YY')
+    const diff = expirationDate.diff(now, 'month');
+
+    return diff;
 }
