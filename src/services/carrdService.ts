@@ -4,6 +4,8 @@ import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
 import * as cardRepository from '../repositories/cardRepository.js';
+import * as rechargeRepository from '../repositories/rechargeRepository.js';
+import * as paymentRepository from '../repositories/paymentRepository.js';
 
 export async function findByCardDetails(cardNumber: string, cardHolderName: string, expirationDate: string) {
     const card = await cardRepository.findByCardDetails(cardNumber, cardHolderName, expirationDate);
@@ -92,4 +94,16 @@ export async function updateCard(cardId: number, password: string) {
     } as cardRepository.CardUpdateData;
 
     await cardRepository.update(cardId, updatedCardData);
+}
+
+export async function visualizeRecharges(cardId: number) {
+    const cardRecharges = await rechargeRepository.findByCardId(cardId);
+
+    return cardRecharges;
+}
+
+export async function visualizeTransactions(cardId: number) {
+    const cardTransactions = await paymentRepository.findByCardId(cardId);
+
+    return cardTransactions;
 }
