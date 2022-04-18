@@ -6,18 +6,7 @@ import { CardInsertData } from "../repositories/cardRepository.js";
 export async function createCard(req: Request, res: Response) {
     const { employeeId, cardType } = req.body;
 
-    try {
-        const employeeExist = await employeService.verifyEmploye(employeeId);
-        if (!employeeExist) {
-            return res.sendStatus(404)
-        }
-
-        const employeHasCard = await cardService.findByTypeAndEmployeeId(cardType, employeeId);
-        if (employeHasCard !== undefined) {
-            return res.sendStatus(409)
-        }
-
-        const cardData = cardService.createCardData(cardType, employeeId, employeeExist.fullName) as unknown as CardInsertData;
+        const cardData = await cardService.createCardData(cardType, employeeId) as unknown as CardInsertData;
         
         const securityCode = cardData.securityCode;
 
@@ -35,9 +24,6 @@ export async function createCard(req: Request, res: Response) {
         }
 
         res.status(201).send(card);
-    } catch (error) {
-        console.log(error)
-    }
 };
 
 export async function activateCard(req: Request, res: Response) {
@@ -67,7 +53,6 @@ export async function activateCard(req: Request, res: Response) {
 
         res.sendStatus(200);
     } catch (error) {
-        console.log(error)
     }
 }
 
