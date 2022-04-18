@@ -1,55 +1,32 @@
 import { Request, Response } from "express";
-import * as cardService from '../services/carrdService.js';
+import * as cardService from '../services/cardService.js';
 import * as purchaseService from '../services/purchaseService.js';
+import * as businessService from '../services/businessService.js';
 import { PaymentInsertData } from "../repositories/paymentRepository.js";
 
 export async function insertPurchase(req: Request, res: Response) {
     const { cardId, password, businessId, amount } = req.body;
 
-    try {
-        const cardResult = await cardService.findById(cardId);
-        if (!cardResult) {
-            return res.sendStatus(404)
-        }
+    const cardResult = await cardService.ensureCardExists(cardId);
+    cardService.ensureCardIsNotExpired(cardResult);
+    const businessResult = await businessService.ensureBusinessExists(businessId);
+    businessService.ensureBusinessType(cardResult, businessResult);
+    purchaseService.verifyPassword(cardResult, password);
 
-        const diff = cardService.verifyExpirationDate(cardResult);
-        if (diff < 0) {
-            return res.sendStatus(403)
-        }
+    const cardBalance = await cardService.calculateBalance(cardId);
 
-        const bussinesResult = await purchaseService.findById(businessId);
-        if (!bussinesResult) {
-            return res.sendStatus(404)
-        }
-
-        if (cardResult.type !== bussinesResult.type) {
-            return res.sendStatus(403)
-        }
-
-        const passwordIsValid = purchaseService.verifyPassword(cardResult, password);
-        if (!passwordIsValid) {
-            return res.sendStatus(403)
-        }
-
-        const cardBalance = await cardService.calculateBalance(cardId);
-
-        if (cardBalance.balance < amount) {
-            return res.sendStatus(403)
-        }
+    cardService.ensureCardHasBalance(cardBalance, amount);
         
-        const timestamp = new Date().getTime();
+    const timestamp = new Date().getTime();
 
-        const paymentData = {
-            cardId: cardId,
-            businessId: businessId,
-            timestamp: timestamp,
-            amount: amount
-        } as PaymentInsertData;
+    const paymentData = {
+        cardId: cardId,
+        businessId: businessId,
+        timestamp: timestamp,
+        amount: amount
+    } as PaymentInsertData;
 
-        await purchaseService.insert(paymentData);
+    await purchaseService.insert(paymentData);
 
-        res.sendStatus(200);
-    } catch (error) {
-        console.log(error)
-    }
+    res.sendStatus(200);
 };

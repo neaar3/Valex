@@ -7,15 +7,18 @@ const serviceErrorToStatusCode = {
   conflict: 409,
 };
 
-export function unauthorizedError() {
+export function unauthorizedError(entity: string) {
   return { 
     type: "unauthorized",
-    
+    message: `You don't have permission to do this, chek your "${entity}"!` 
   };
 }
 
-export function forbiddenError() {
-  return { type: "forbidden" };
+export function forbiddenError(entity: string) {
+  return { 
+    type: "forbidden",
+    message: `You don't have permission to do this, chek your "${entity}"!` 
+  };
 }
 
 export function notFoundError(entity: string) {

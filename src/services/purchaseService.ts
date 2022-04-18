@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import * as businessesRepository from '../repositories/businessRepository.js'
 import * as paymentRepository from '../repositories/paymentRepository.js'
 import { Card } from '../repositories/cardRepository.js';
+import { forbiddenError } from '../middlewares/handleErrorsMiddleware.js';
 
 export async function findById(businessesId: number) {
     const businessResult = await businessesRepository.findById(businessesId);
@@ -12,7 +13,7 @@ export async function findById(businessesId: number) {
 export function verifyPassword(cardResult: Card, password: string) {
     const passwordIsValid = bcrypt.compareSync(password, cardResult.password);
 
-    return passwordIsValid;
+    if (!passwordIsValid) throw forbiddenError('Password');
 }
 
 export async function insert(paymentData: paymentRepository.PaymentInsertData) {
