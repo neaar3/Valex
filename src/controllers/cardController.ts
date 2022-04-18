@@ -80,25 +80,7 @@ export async function visualizeBalance(req: Request, res: Response) {
             return res.sendStatus(404)
         }       
 
-        const cardRecharges = await cardService.visualizeRecharges(cardId);
-        // console.log(cardRecharges)
-
-        const cardTransactions = await cardService.visualizeTransactions(cardId);
-        // console.log(cardTransactions)
-
-        let balance = 0;
-        let recharges = [{}];
-        let transactions = [{}];
-
-        if (cardRecharges !== []) {
-            
-        }
-
-        const cardBalance = {
-            balance: balance,
-            transactions: transactions,
-            recharges: recharges
-        }
+        const cardBalance = await cardService.calculateBalance(cardId);
 
         res.status(200).send(cardBalance);
     } catch (error) {
