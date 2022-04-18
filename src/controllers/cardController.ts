@@ -4,24 +4,22 @@ import * as cardService from '../services/carrdService.js';
 import { CardInsertData } from "../repositories/cardRepository.js";
 
 export async function createCard(req: Request, res: Response) {
-    const { employeId, cardType } = req.body;
+    const { employeeId, cardType } = req.body;
 
     try {
-        const employeExist = await employeService.verifyEmploye(employeId);
-
-        if (!employeExist) {
+        const employeeExist = await employeService.verifyEmploye(employeeId);
+        if (!employeeExist) {
             return res.sendStatus(404)
         }
 
-        const employeHasCard = await cardService.findByTypeAndEmployeeId(cardType, employeId);
-
+        const employeHasCard = await cardService.findByTypeAndEmployeeId(cardType, employeeId);
         if (employeHasCard !== undefined) {
             return res.sendStatus(409)
         }
 
-        const cardData = cardService.createCardData(cardType, employeId, employeExist.fullName) as unknown as CardInsertData;
+        const cardData = cardService.createCardData(cardType, employeeId, employeeExist.fullName) as unknown as CardInsertData;
         
-        const cvc = cardData.securityCode;
+        const securityCode = cardData.securityCode;
 
         const { id: cardId } = await cardService.createNewCard(cardData);
         
@@ -31,7 +29,7 @@ export async function createCard(req: Request, res: Response) {
             id: cardResult.id,
             number: cardResult.number,
             cardHolderName: cardResult.cardholderName,
-            securityCode: cvc,
+            securityCode: securityCode,
             expirationDate: cardResult.expirationDate,
             type: cardResult.type
         }
@@ -41,3 +39,68 @@ export async function createCard(req: Request, res: Response) {
         console.log(error)
     }
 };
+
+export async function activateCard(req: Request, res: Response) {
+    const { cardId, securityCode, password} = req.body;
+    
+    try {
+        const cardResult = await cardService.findById(cardId);
+        if (!cardResult) {
+            res.sendStatus(404)
+        }
+        if (cardResult.password) {
+            res.sendStatus(403)
+        }
+        
+        const diff = cardService.verifyExpirationDate(cardResult);
+        if (diff < 0) {
+            res.sendStatus(403)
+        }
+
+        const securityCodeIsValid = cardService.verifySecurityCode(cardResult, securityCode);
+        if (!securityCodeIsValid) {
+            res.sendStatus(401)
+        }
+
+        await cardService.updateCard(cardId, password);
+
+        res.sendStatus(200);
+    } catch (error) {
+        console.log(error)
+    }
+}
+
+export async function visualizeBalance(req: Request, res: Response) {
+    const { cardId } = req.body;
+
+    try {
+        const cardResult = await cardService.findById(cardId);
+        if (!cardResult) {
+            res.sendStatus(404)
+        }       
+
+        const cardRecharges = await cardService.visualizeRecharges(cardId);
+        console.log(cardRecharges)
+
+        const cardTransactions = await cardService.visualizeTransactions(cardId);
+        console.log(cardTransactions)
+
+        let balance = 0;
+        let recharges = [{}];
+        let transactions = [{}];
+
+        if (cardRecharges !== []) {
+            
+        }
+
+        const cardBalance = {
+            balance: balance,
+            transactions: transactions,
+            recharges: recharges
+        }
+
+        res.status(200).send(cardBalance);
+    } catch (error) {
+        
+    }
+}
