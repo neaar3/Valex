@@ -3,9 +3,11 @@ import bcrypt from 'bcrypt';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 
+import * as employeService from '../services/employeService.js'
 import * as cardRepository from '../repositories/cardRepository.js';
 import * as rechargeRepository from '../repositories/rechargeRepository.js';
 import * as paymentRepository from '../repositories/paymentRepository.js';
+import { conflictError, notFoundError } from '../middlewares/handleErrorsMiddleware.js';
 
 export async function findByCardDetails(cardNumber: string, cardHolderName: string, expirationDate: string) {
     const card = await cardRepository.findByCardDetails(cardNumber, cardHolderName, expirationDate);
@@ -33,10 +35,16 @@ export async function createNewCard(cardData: cardRepository.CardInsertData) {
     return cardId;
 }
 
-export function createCardData(cardType: cardRepository.TransactionTypes, employeId: number, employeFullName: string) {
+export async function createCardData(cardType: cardRepository.TransactionTypes, employeeId: number) {
+    const employeeExist = await employeService.verifyEmploye(employeeId);
+    if (!employeeExist) throw notFoundError('Employee');
+
+    const employeHasCard = await findByTypeAndEmployeeId(cardType, employeeId);
+    if (employeHasCard !== undefined) throw conflictError('Card');
+
     const number = faker.finance.creditCardNumber('mastercard');
 
-    const fullName = employeFullName.split(' ');
+    const fullName = employeeExist.fullName.split(' ');
     let cardHolderName = fullName;
 
     if (fullName.length > 2) {
@@ -56,7 +64,7 @@ export function createCardData(cardType: cardRepository.TransactionTypes, employ
     const expirationDate = dayjs().add(5, 'year').format("MM/YY");
 
     const randomCardData = {
-        employeeId: employeId,
+        employeeId: employeeId,
         number: number,
         cardholderName: cardHolderName,
         securityCode: securityCode,
