@@ -96,22 +96,12 @@ export async function updateCard(cardId: number, password: string) {
     await cardRepository.update(cardId, updatedCardData);
 }
 
-export async function getRecharges(cardId: number) {
-    const cardRecharges = await rechargeRepository.findByCardId(cardId);
-
-    return cardRecharges;
-}
-
-export async function getTransactions(cardId: number) {
-    const cardTransactions = await paymentRepository.findByCardId(cardId);
-
-    return cardTransactions;
-}
-
-export function calculateBalance(cardRecharges: rechargeRepository.Recharge[], cardTransactions: paymentRepository.PaymentWithBusinessName[]) {
+export async function calculateBalance(cardId: number) {
     let balance = 0;
     let recharges = [{}];
     let transactions = [{}];
+    const cardRecharges = await rechargeRepository.findByCardId(cardId);
+    const cardTransactions = await paymentRepository.findByCardId(cardId);
 
     if (cardRecharges !== []) {
         recharges = cardRecharges;

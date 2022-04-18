@@ -30,9 +30,13 @@ export async function insertPurchase(req: Request, res: Response) {
         if (!passwordIsValid) {
             return res.sendStatus(403)
         }
-        // console.log(cardResult);
-        // console.log(bussinesResult);
 
+        const cardBalance = await cardService.calculateBalance(cardId);
+
+        if (cardBalance.balance < amount) {
+            return res.sendStatus(403)
+        }
+        
         const timestamp = new Date().getTime();
 
         const paymentData = {

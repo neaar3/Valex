@@ -80,11 +80,7 @@ export async function visualizeBalance(req: Request, res: Response) {
             return res.sendStatus(404)
         }       
 
-        const cardRecharges = await cardService.getRecharges(cardId);
-
-        const cardTransactions = await cardService.getTransactions(cardId);
-
-        const cardBalance = cardService.calculateBalance(cardRecharges, cardTransactions);
+        const cardBalance = await cardService.calculateBalance(cardId);
 
         res.status(200).send(cardBalance);
     } catch (error) {
