@@ -10,6 +10,6 @@ const cardRouter = Router();
 
 cardRouter.post('/card/create', ensureAuthMiddleware, validateSchemaMiddleware(createCardSchema), cardController.createCard);
 cardRouter.post('/card/activate', validateSchemaMiddleware(activateCardSchema), cardController.activateCard);
-cardRouter.post('/card/balance', validateSchemaMiddleware(visualizeBalanceSchema), cardController.visualizeBalance);
+cardRouter.get('/card/balance', validateSchemaMiddleware(visualizeBalanceSchema), cardController.visualizeBalance);
 
 export default cardRouter;
