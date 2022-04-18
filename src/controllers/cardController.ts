@@ -46,20 +46,21 @@ export async function activateCard(req: Request, res: Response) {
     try {
         const cardResult = await cardService.findById(cardId);
         if (!cardResult) {
-            res.sendStatus(404)
+            return res.sendStatus(404);
+            
         }
         if (cardResult.password) {
-            res.sendStatus(403)
+            return res.sendStatus(403)
         }
         
         const diff = cardService.verifyExpirationDate(cardResult);
         if (diff < 0) {
-            res.sendStatus(403)
+            return res.sendStatus(403)
         }
 
         const securityCodeIsValid = cardService.verifySecurityCode(cardResult, securityCode);
         if (!securityCodeIsValid) {
-            res.sendStatus(401)
+            return res.sendStatus(401)
         }
 
         await cardService.updateCard(cardId, password);
@@ -76,14 +77,14 @@ export async function visualizeBalance(req: Request, res: Response) {
     try {
         const cardResult = await cardService.findById(cardId);
         if (!cardResult) {
-            res.sendStatus(404)
+            return res.sendStatus(404)
         }       
 
         const cardRecharges = await cardService.visualizeRecharges(cardId);
-        console.log(cardRecharges)
+        // console.log(cardRecharges)
 
         const cardTransactions = await cardService.visualizeTransactions(cardId);
-        console.log(cardTransactions)
+        // console.log(cardTransactions)
 
         let balance = 0;
         let recharges = [{}];
