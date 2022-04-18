@@ -9,13 +9,12 @@ export async function rechargeCard(req: Request, res: Response) {
     try {
         const cardResult = await cardService.findById(cardId);
         if (!cardResult) {
-            console.log(cardResult)
-            res.sendStatus(404)
+            return res.sendStatus(404)
         }
 
         const diff = cardService.verifyExpirationDate(cardResult);
         if (diff < 0) {
-            res.sendStatus(403)
+            return res.sendStatus(403)
         }
 
         const timestamp = new Date().getTime();
